@@ -1,0 +1,43 @@
+services:
+  mapbender:
+    container_name: mapbender
+    image: mapbender/mapbender
+    restart: unless-stopped
+    depends_on:
+      - mapbender-db
+    environment:
+      - APP_ENV=prod
+      - MAPBENDER_DATABASE_URL=pgsql://<Username>:<Password>@mapbender-db:5432/postgres
+      # - MAILER_DSN=smtp://user:pass@smtp.example.com:25
+    networks:
+      - internal
+    volumes:
+      - /var/docker/mapbender/mapbender/logs:/var/log/mapbender
+      - /var/docker/mapbender/mapbender/config:/var/www/mapbender/application/.env.local.php
+      - /var/docker/mapbender/mapbender/uploads:/var/mapbender/application/public/uploads
+    ports:
+      - "80:8080"
+
+  mapbender-db:
+    container_name: mapbender-db
+    image: postgis/postgis:14-3.4
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=<Username>
+      - POSTGRES_PASSWORD=<Password>
+      - POSTGRES_DB=postgres
+    networks:
+      - internal
+    volumes:
+      - /var/docker/mapbender/db:/var/lib/postgresql/data
+
+networks:
+  internal:
+    driver: bridge
+
+
+
+# docker network create proxy
+# docker exec mapbender php application/bin/console doctrine:schema:create
+# docker exec mapbender php application/bin/console mapbender:database:init -v
+# docker exec mapbender php application/bin/console fom:user:resetroot --username="root" --password="root" --email="root@example.com" --silent
